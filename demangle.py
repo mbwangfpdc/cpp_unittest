@@ -38,22 +38,4 @@ class CppFuncSymbols:
         except Exception as e:
             print(e)
 
- 
-
-
-def mangling_map(obj_filepath):
-
-    # Demangle the symbols, and use regex to acquire the demangled function names only
-    mangled_funcs = re.findall(NM_FUNC_PATTERN, subprocess.check_output(["nm", obj_filepath]).decode('utf-8'))
-
-    # Generate a map from plain names to mangled names
-    symbol_map = {}
-    for mangled_func in mangled_funcs:
-        demangled_func = subprocess.check_output(["c++filt", mangled_func]).decode('utf-8')
-        demangled_func = re.sub(WHITESPACE_PATTERN, "", demangled_func)
-        symbol_map[demangled_func] = mangled_func
-    return symbol_map
-    
-
-
 CppFuncSymbols("student.o") 
