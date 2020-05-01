@@ -24,18 +24,18 @@ class ObjCopier:
     def __init__(self, obj_filepath: str):
         self.obj_filepath = obj_filepath # full path to object file managed by this
         self.mangle_map: Dict[str, str] = dict() # maps from symbol name to mangled symbol name
-        self.symbol_attrs: Dict[str, SymbolMarker] = dict() # maps from symbol name to attribute to apply
+        self.symbol_attrs: Dict[str, self.SymbolMarker] = dict() # maps from symbol name to attribute to apply
         self.reset_symbols()
 
     def copy(self, result_obj_filepath: str):
         cmd = ["objcopy", self.obj_filepath, result_obj_filepath]
-        for symbol, attr in self.symbol_attrs:
+        for symbol, attr in self.symbol_attrs.items():
             self.assert_symbol_exists(symbol)
-            if attr == SymbolMarker.WEAKEN:
-                cmd.append(f" -W{self.mangle_map[symbol]}")
+            if attr == self.SymbolMarker.WEAKEN:
+                cmd.append(f"-W{self.mangle_map[symbol]}")
                 print(f"weakening {symbol}")
-            elif attr == SymbolMarker.REMOVE:
-                cmd.append(f" -N{self.mangle_map[symbol]}")
+            elif attr == self.SymbolMarker.REMOVE:
+                cmd.append(f"-N{self.mangle_map[symbol]}")
                 print(f"removing {symbol}")
         print(f"running {cmd}")
         print(subprocess.check_output(cmd).decode('utf-8'))
@@ -51,12 +51,12 @@ class ObjCopier:
     def mark_to_weaken(self, symbol_to_weaken: str):
         self.assert_obj_exists()
         self.assert_symbol_exists(symbol_to_weaken)
-        self.symbol_attrs[symbol_to_weaken] = SymbolMarker.WEAKEN
+        self.symbol_attrs[symbol_to_weaken] = self.SymbolMarker.WEAKEN
 
     def mark_to_remove(self, symbol_to_weaken: str):
         self.assert_obj_exists()
         self.assert_symbol_exists(symbol_to_weaken)
-        self.symbol_attrs[symbol_to_weaken] = SymbolMarker.REMOVE
+        self.symbol_attrs[symbol_to_weaken] = self.SymbolMarker.REMOVE
 
     def __contains__(self, symbol):
         return symbol in self.mangle_map
@@ -67,7 +67,7 @@ class ObjCopier:
         '''
         self.assert_obj_exists()
         self.mangle_map = dict()
-        self.symbol_attrs = list()
+        self.symbol_attrs = dict()
         # List function symbols, and use regex to acquire the function names only
         try:
             symbol_table = subprocess.check_output(["nm", self.obj_filepath]).decode('utf-8')
@@ -93,4 +93,6 @@ class ObjCopier:
 if __name__ == "__main__":
     subprocess.run("make clean && make objs", shell=True)
     oc = ObjCopier("student.o")
+    for symbol in oc.mangle_map:
+        oc.symbol_attrs[symbol] = ObjCopier.SymbolMarker.WEAKEN
     oc.copy("allWeakStudent.o")
