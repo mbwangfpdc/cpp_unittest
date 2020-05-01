@@ -1,5 +1,3 @@
-#!/Library/Frameworks/Python.framework/Versions/3.6/bin/python3
-
 import os
 import subprocess
 import re
@@ -70,20 +68,22 @@ class ObjCopier:
         self.symbol_attrs = dict()
         # List function symbols, and use regex to acquire the function names only
         try:
-            symbol_table = subprocess.check_output(["nm", self.obj_filepath]).decode('utf-8')
+            cmd = ["nm", self.obj_filepath]
+            print(f"Running {cmd}")
+            symbol_table = subprocess.check_output(cmd).decode('utf-8')
             mangled_symbols = NM_FUNC_PATTERN.findall(symbol_table)
-            print(mangled_symbols)
+            print(f"Mangled symbols: {mangled_symbols}")
             # Generate a map from plain names to mangled names
             for mangled_func in mangled_symbols:
                 demangled_func = subprocess.check_output(["c++filt", mangled_func]).decode('utf-8').strip()
                 self.mangle_map[demangled_func] = mangled_func
+            print(f"Map from demangled to mangled symbols: {self.mangle_map}")
 
-            print(self.mangle_map)
-
-            print(subprocess.check_output(["objdump", "-t", self.obj_filepath]).decode('utf-8'))
+            cmd = ["objdump", "-t", self.obj_filepath]
+            print(f"Output of {cmd}: ")
+            print(subprocess.check_output(cmd).decode('utf-8'))
         except subprocess.CalledProcessError as cperror:
             print("Error encountered while reading and demangling object file at: {}".format(self.obj_filepath))
-
             if cperror.output is not None:
                 print("Erroneous call: {}".format(cperror.cmd))
         except Exception as e:
@@ -91,8 +91,20 @@ class ObjCopier:
 
 
 if __name__ == "__main__":
-    subprocess.run("make clean && make objs", shell=True)
     oc = ObjCopier("student.o")
     for symbol in oc.mangle_map:
         oc.symbol_attrs[symbol] = ObjCopier.SymbolMarker.WEAKEN
     oc.copy("allWeakStudent.o")
+
+    # TODO: Take in list of object files (instructor) and partially link it into a .o
+    # Scan obj file for every symbol.  Create a map between function signature and unique ID.  Be sure to print this out!
+    # Discard all functions except the ones we want to unittest.  (keep this in a file somewhere)
+    # For each function sig. in the obj file, make a version of the obj file with that function removed from the symbol table
+    # Now for any given function to be unit tested, we have an obj file where all functions are mocked out except that exact symbol
+    # Name the object file instructor_<ID>.o
+
+    # For every student project
+    # For each obj file, for each symbol in that obj file, make a version of the obj where that symbol is the only one remaining
+    # Name those files student_<ID>.o
+
+    # For each ID, student_<ID>.o and instructor<ID>.o.  Run the test on the resulting binary.
