@@ -1,2 +1,3 @@
 # cpp_unittest
-Python utilities for assisting unittests of student functions against instructor solution code
+Python utilities for unit testing simple c++ functions
+Thin mocking interface
