@@ -1,12 +1,22 @@
-COMPILER=g++ -std=c++11
-FLAGS=-Werror -Wall -O3
+RECIPES:=recipes.mk
+SOLUTION_MAKEFILE:=solution/makefile
+STUDENT_MAKEFILES:=$(wildcard student/*/makefile)
 
-OBJS=build/student.o build/solution.o build/main.o
+${SOLUTION_MAKEFILE}: ${RECIPES}
+	cp $< $@
 
-objs: $(OBJS)
+student/%/makefile: ${RECIPES}
+	cp $< $@
 
-build/%.o: %.cpp
-	$(COMPILER) $(FLAGS) -c $< -o $@
+.PHONY: solution
+solution: ${SOLUTION_MAKEFILE}
+	cd solution && make partial
 
-clean:
-	rm -rf build/*
+.PHONY: student
+student/%: student/%/makefile
+	cd student/$* && make partial
+
+.phony: cleanall
+cleanall: ${SOLUTION_MAKEFILE} ${STUDENT_MAKEFILES}
+	cd solution && make clean
+	for d in student/*/ ; do cd $$d && make clean ; done

@@ -91,20 +91,25 @@ class ObjCopier:
 
 
 if __name__ == "__main__":
-    oc = ObjCopier("student.o")
-    for symbol in oc.mangle_map:
-        oc.symbol_attrs[symbol] = ObjCopier.SymbolMarker.WEAKEN
-    oc.copy("allWeakStudent.o")
+    # oc = ObjCopier("student.o")
+    # for symbol in oc.mangle_map:
+    #     oc.symbol_attrs[symbol] = ObjCopier.SymbolMarker.WEAKEN
+    # oc.copy("allWeakStudent.o")
+
+    instructor_objs = [filename for filename in os.listdir("./build") if filename.endswith(".o")]
+    print(f"Collected object files: {instructor_objs}")
+    with open("tested_functions.txt", "r") as tested_functions_file:
+        tested_functions = {idx: tested_function.strip() for idx, tested_function in enumerate(tested_functions_file.readlines()) if tested_function}
+    print(f"Testing functions: {tested_functions}")
 
     # TODO: Take in list of object files (instructor) and partially link it into a .o
     # Scan obj file for every symbol.  Create a map between function signature and unique ID.  Be sure to print this out!
-    # Discard all functions except the ones we want to unittest.  (keep this in a file somewhere)
     # For each function sig. in the obj file, make a version of the obj file with that function removed from the symbol table
     # Now for any given function to be unit tested, we have an obj file where all functions are mocked out except that exact symbol
     # Name the object file instructor_<ID>.o
 
     # For every student project
-    # For each obj file, for each symbol in that obj file, make a version of the obj where that symbol is the only one remaining
-    # Name those files student_<ID>.o
+    # Partially link whole project into a .o
+    # Weaken every symbol
 
-    # For each ID, student_<ID>.o and instructor<ID>.o.  Run the test on the resulting binary.
+    # For each ID, student.o and instructor<ID>.o.  Run the test on the resulting binary.
