@@ -56,6 +56,10 @@ class ObjCopier:
         self.assert_symbol_exists(symbol_to_weaken)
         self.symbol_attrs[symbol_to_weaken] = self.SymbolMarker.REMOVE
 
+    def clear_marks(self):
+        self.assert_obj_exists()
+        self.symbol_attrs = dict()
+
     def __contains__(self, symbol):
         return symbol in self.mangle_map
 
@@ -96,20 +100,27 @@ if __name__ == "__main__":
     #     oc.symbol_attrs[symbol] = ObjCopier.SymbolMarker.WEAKEN
     # oc.copy("allWeakStudent.o")
 
-    instructor_objs = [filename for filename in os.listdir("./build") if filename.endswith(".o")]
-    print(f"Collected object files: {instructor_objs}")
+    # instructor_objs = [filename for filename in os.listdir("./build") if filename.endswith(".o")]
+    # print(f"Collected object files: {instructor_objs}")
     with open("tested_functions.txt", "r") as tested_functions_file:
         tested_functions = {idx: tested_function.strip() for idx, tested_function in enumerate(tested_functions_file.readlines()) if tested_function}
     print(f"Testing functions: {tested_functions}")
 
-    # TODO: Take in list of object files (instructor) and partially link it into a .o
-    # Scan obj file for every symbol.  Create a map between function signature and unique ID.  Be sure to print this out!
-    # For each function sig. in the obj file, make a version of the obj file with that function removed from the symbol table
-    # Now for any given function to be unit tested, we have an obj file where all functions are mocked out except that exact symbol
-    # Name the object file instructor_<ID>.o
+    subprocess.run("make clean && make partial", shell=True)
 
-    # For every student project
-    # Partially link whole project into a .o
-    # Weaken every symbol
+    obj_copier = ObjCopier("solution/build/PARTIAL.o")
+    for idx, tested_function in tested_functions.items():
+        obj_copier.mark_to_weaken(tested_function)
+        print(f"mark_to_weaken {tested_function}")
+        obj_copier.copy(f"solution/build/PARTIAL_{idx}.o")
+        print(f"copy solution/build/PARTIAL_{idx}.o")
+        obj_copier.clear_marks()
 
-    # For each ID, student.o and instructor<ID>.o.  Run the test on the resulting binary.
+
+    # TODO:
+    # For every student/PARTIAL.o
+    #   For each symbol_ID to test
+    #       Weaken all except that symbol in a student/PARTIAL_ID.o
+    #
+
+    # For each ID, link student/PARTIAL_{ID}.o and instructor/PARTIAL_{ID}.o.  Run the test on the resulting binary.

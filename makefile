@@ -16,7 +16,12 @@ solution: ${SOLUTION_MAKEFILE}
 student/%: student/%/makefile
 	cd student/$* && make partial
 
-.phony: cleanall
-cleanall: ${SOLUTION_MAKEFILE} ${STUDENT_MAKEFILES}
+.phony: partial
+partial: ${SOLUTION_MAKEFILE} ${STUDENT_MAKEFILES}
+	cd solution && make partial
+	for d in student/*/ ; do cd $$d && make partial && cd - ; done
+
+.phony: clean
+clean: ${SOLUTION_MAKEFILE} ${STUDENT_MAKEFILES}
 	cd solution && make clean
-	for d in student/*/ ; do cd $$d && make clean ; done
+	for d in student/*/ ; do cd $$d && make clean && cd - ; done

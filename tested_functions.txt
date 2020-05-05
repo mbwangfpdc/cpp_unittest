@@ -1,1 +1,3 @@
-bigpeepee
+cls::multiplyConstRef(int const&, int const&)
+cls::add(int, int)
+cls::subtract(int, int)
